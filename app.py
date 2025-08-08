@@ -14,6 +14,13 @@ from flask import Response
 # --- Config ---
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")  # optional for protecting admin pages
+
+app = Flask(__name__)
+app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")  # replace in production
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///data.db")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
 BASIC_AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
 BASIC_AUTH_PASS = os.environ.get("BASIC_AUTH_PASS", "")
 
@@ -46,14 +53,6 @@ def _basic_auth_gate():
         auth = request.authorization
         if not auth or not (auth.username == BASIC_AUTH_USER and auth.password == BASIC_AUTH_PASS):
             return _auth_failed_response()
-
-
-app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")  # replace in production
-app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", "sqlite:///data.db")
-app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-
-db = SQLAlchemy(app)
 
 # --- Models ---
 class Link(db.Model):
