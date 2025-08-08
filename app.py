@@ -105,7 +105,7 @@ def init_db_once():
 @app.get("/")
 def home():
     # List recent links
-    recent = Link.query.order_by(Link.created_at.desc()).limit(20).all()
+    recent = Link.query.order_by(Link.created_at.desc()).all()
     return render_template("index.html", base_url=BASE_URL, recent=recent, admin_token=ADMIN_TOKEN)
 
 @app.post("/create")
