@@ -1,0 +1,70 @@
+
+{% extends "base.html" %}
+{% block title %}Analytics · {{ link.slug }} · Shorty{% endblock %}
+{% block head_extra %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-2">Analytics: <code class="font-mono">{{ link.slug }}</code></h1>
+<p class="text-sm text-gray-600 mb-6">
+  Target: <a class="underline" target="_blank" href="{{ link.target_url }}">{{ link.target_url }}</a>
+</p>
+<div class="lg:col-span-2 bg-white border rounded p-4">
+  <h2 class="font-medium mb-2">Daily clicks (last 30 days)</h2>
+  <div style="height:300px;">
+    <canvas id="dailyChart"></canvas>
+  </div>
+</div>
+
+  <div class="bg-white border rounded p-4">
+    <h2 class="font-medium mb-2">Summary</h2>
+    <div id="summary" class="text-sm space-y-1 text-gray-700">Loading...</div>
+  </div>
+
+  <div class="bg-white border rounded p-4">
+    <h2 class="font-medium mb-2">Top referrers</h2>
+    <ul id="referrers" class="text-sm space-y-1 text-gray-700"></ul>
+  </div>
+  <div class="bg-white border rounded p-4 lg:col-span-2">
+    <h2 class="font-medium mb-2">User agents</h2>
+    <ul id="uas" class="text-sm grid md:grid-cols-2 gap-x-6"></ul>
+  </div>
+</div>
+
+<script>
+async function loadStats(){
+  const res = await fetch(`/api/stats/{{ link.slug }}.json`);
+  const data = await res.json();
+
+  // Summary
+  document.getElementById('summary').innerHTML = `
+    <div>Total clicks: <strong>${data.total_clicks}</strong></div>
+    <div>Unique visitors (rough): <strong>${data.unique_visitors}</strong></div>
+  `;
+
+  // Daily chart
+  const ctx = document.getElementById('dailyChart').getContext('2d');
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.labels,
+      datasets: [{ label: 'Clicks', data: data.daily_counts }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: { x: { ticks: { maxRotation: 0, autoSkip: true } } }
+    }
+  });
+
+  // Referrers
+  const r = document.getElementById('referrers');
+  r.innerHTML = data.referrers.map(x => `<li>${x.referer} — <strong>${x.count}</strong></li>`).join('');
+
+  // User agents
+  const u = document.getElementById('uas');
+  u.innerHTML = data.user_agents.map(x => `<li>${x.user_agent} — <strong>${x.count}</strong></li>`).join('');
+}
+loadStats();
+</script>
+{% endblock %}

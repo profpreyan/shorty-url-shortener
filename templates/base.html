@@ -1,0 +1,49 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Shorty · URL Shortener{% endblock %}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { brand: { DEFAULT: '#111827' } }
+        }
+      }
+    }
+  </script>
+  <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+  {% block head_extra %}{% endblock %}
+</head>
+<body class="bg-gray-50 text-gray-900">
+  <header class="bg-white border-b">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="/" class="font-semibold">Shorty</a>
+      <nav class="text-sm space-x-4">
+        <a href="/" class="hover:underline">Create</a>
+        <a href="/admin/links{% if admin_token %}?token={{ admin_token }}{% endif %}" class="hover:underline">All Links</a>
+        <a href="https://github.com/" target="_blank" class="hover:underline">Docs</a>
+      </nav>
+    </div>
+  </header>
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="space-y-2 mb-4">
+        {% for cat, msg in messages %}
+          <div class="p-3 rounded text-sm {% if cat == 'error' %}bg-red-100 text-red-900{% else %}bg-green-100 text-green-900{% endif %}">{{ msg }}</div>
+        {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="text-center text-xs text-gray-500 py-6">
+    Built with Flask · Demo app
+  </footer>
+  {% block body_extra %}{% endblock %}
+</body>
+</html>

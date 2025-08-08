@@ -1,0 +1,35 @@
+
+{% extends "base.html" %}
+{% block title %}All Links · Shorty{% endblock %}
+{% block content %}
+<h1 class="text-2xl font-semibold mb-4">All Links</h1>
+<div class="bg-white border rounded-lg overflow-hidden">
+  <table class="min-w-full text-sm">
+    <thead class="bg-gray-50 text-left">
+      <tr>
+        <th class="px-4 py-2">Slug</th>
+        <th class="px-4 py-2">Target</th>
+        <th class="px-4 py-2">Title</th>
+        <th class="px-4 py-2">Created</th>
+        <th class="px-4 py-2"></th>
+      </tr>
+    </thead>
+    <tbody class="divide-y">
+      {% for l in links %}
+      <tr>
+        <td class="px-4 py-2 font-mono"><a class="hover:underline" target="_blank" href="/{{ l.slug }}">{{ l.slug }}</a></td>
+        <td class="px-4 py-2 max-w-[26rem] truncate text-gray-600">{{ l.target_url }}</td>
+        <td class="px-4 py-2">{{ l.title or "" }}</td>
+        <td class="px-4 py-2 text-gray-500">{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+        <td class="px-4 py-2 text-right">
+          <a class="border rounded px-2 py-1 text-xs" href="/stats/{{ l.slug }}{% if admin_token %}?token={{ admin_token }}{% endif %}">Analytics</a>
+          <form method="post" action="/admin/delete/{{ l.slug }}" style="display:inline" onsubmit="return confirm('Delete {{ l.slug }}?')">
+            <button class="ml-2 border rounded px-2 py-1 text-xs">Delete</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,60 @@
+
+{% extends "base.html" %}
+{% block title %}Create · Shorty{% endblock %}
+{% block content %}
+<div class="grid md:grid-cols-2 gap-8">
+  <section>
+    <h1 class="text-2xl font-semibold mb-3">Shorten a URL</h1>
+    <form method="post" action="/create" class="space-y-4 bg-white p-4 rounded-lg border">
+      <div>
+        <label class="text-sm font-medium">Target URL</label>
+        <input name="target_url" type="url" required placeholder="https://example.com/page" class="mt-1 w-full border rounded p-2">
+      </div>
+      <div>
+        <label class="text-sm font-medium">Custom slug (optional)</label>
+        <div class="flex">
+          <span class="inline-flex items-center px-3 rounded-l border border-r-0 bg-gray-50 text-gray-500 text-sm">{{ base_url }}/</span>
+          <input name="custom_slug" pattern="[A-Za-z0-9_-]{1,50}" title="letters, numbers, - or _" placeholder="my-cool-link" class="w-full border rounded-r p-2">
+        </div>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Title (optional)</label>
+        <input name="title" placeholder="Campaign name or note" class="mt-1 w-full border rounded p-2">
+      </div>
+      {% if admin_token %}
+        <input type="hidden" name="token" value="{{ admin_token }}">
+      {% endif %}
+      <button class="bg-gray-900 text-white rounded px-4 py-2">Create</button>
+      <p class="text-xs text-gray-500">Tip: set ADMIN_TOKEN env var to restrict creation and admin pages.</p>
+    </form>
+  </section>
+
+  <section>
+    <h2 class="text-2xl font-semibold mb-3">Recent links</h2>
+    <div class="bg-white border rounded-lg divide-y">
+      {% for link in recent %}
+        <div class="p-4 flex items-center justify-between gap-4">
+          <div class="min-w-0">
+            <div class="font-mono text-sm truncate"><a class="hover:underline" href="/{{ link.slug }}" target="_blank">{{ base_url }}/{{ link.slug }}</a></div>
+            <div class="text-xs text-gray-500 truncate">{{ link.target_url }}</div>
+            {% if link.title %}<div class="text-xs text-gray-600">{{ link.title }}</div>{% endif %}
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button class="text-xs border rounded px-2 py-1" onclick="copyToClipboard('{{ base_url }}/{{ link.slug }}', this)">Copy</button>
+            <a class="text-xs border rounded px-2 py-1" href="/stats/{{ link.slug }}{% if admin_token %}?token={{ admin_token }}{% endif %}">Analytics</a>
+          </div>
+        </div>
+      {% else %}
+        <div class="p-4 text-sm text-gray-500">No links yet.</div>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+<script>
+function copyToClipboard(text, btn){
+  navigator.clipboard.writeText(text);
+  btn.textContent = "Copied";
+  setTimeout(()=>btn.textContent="Copy", 1200);
+}
+</script>
+{% endblock %}
