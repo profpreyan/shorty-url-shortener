@@ -180,6 +180,32 @@ def admin_delete_link(link_id):
     db.session.commit()
     return redirect(url_for("admin_links") + f"?token={request.args.get('token','')}")
 
+# --- Edit link (update target_url) by slug ---
+@app.route("/admin/edit/<slug>", methods=["POST"])
+def admin_edit_link_slug(slug):
+    if not is_admin(request):
+        return "Forbidden", 403
+    link = Link.query.filter_by(slug=slug).first_or_404()
+    new_url = (request.form.get("target_url") or "").strip()
+    if not new_url:
+        return "Target URL required", 400
+    link.target_url = new_url
+    db.session.commit()
+    # keep token in query so you stay authenticated
+    return redirect(url_for("admin_links") + f"?token={request.args.get('token','')}")
+
+# --- Delete link by slug ---
+@app.route("/admin/delete/<slug>", methods=["POST"])
+def admin_delete_link_slug(slug):
+    if not is_admin(request):
+        return "Forbidden", 403
+    link = Link.query.filter_by(slug=slug).first_or_404()
+    # remove its analytics
+    Click.query.filter_by(link_id=link.id).delete()
+    db.session.delete(link)
+    db.session.commit()
+    return redirect(url_for("admin_links") + f"?token={request.args.get('token','')}")
+
 
 @app.post("/admin/delete/<slug>")
 def delete_link(slug):
