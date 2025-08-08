@@ -7,10 +7,46 @@ import random
 from flask import Flask, request, redirect, render_template, url_for, jsonify, abort, flash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import func
+from functools import wraps
+from flask import Response
+
 
 # --- Config ---
 BASE_URL = os.environ.get("BASE_URL", "http://localhost:5000")
 ADMIN_TOKEN = os.environ.get("ADMIN_TOKEN", "")  # optional for protecting admin pages
+BASIC_AUTH_USER = os.environ.get("BASIC_AUTH_USER", "")
+BASIC_AUTH_PASS = os.environ.get("BASIC_AUTH_PASS", "")
+
+def _auth_failed_response():
+    # This tells the browser to show a login popup
+    return Response('Login required', 401, {'WWW-Authenticate': 'Basic realm="Login Required"'})
+
+def _needs_auth(path: str) -> bool:
+    """
+    Protect admin & UI pages, but keep short-link redirects public.
+    Public: /<slug>, /healthz
+    Protected: / (home), /create, /admin/*, /stats/*, /api/*
+    """
+    if not BASIC_AUTH_USER:
+        return False  # if no creds set, keep site open
+    if path == "/healthz":
+        return False
+    if path == "/":
+        return True
+    for prefix in ("/create", "/admin", "/stats", "/api"):
+        if path.startswith(prefix):
+            return True
+    return False  # everything else (like /abc123) is a public redirect
+
+@app.before_request
+def _basic_auth_gate():
+    if not BASIC_AUTH_USER:
+        return  # no auth configured
+    if _needs_auth(request.path):
+        auth = request.authorization
+        if not auth or not (auth.username == BASIC_AUTH_USER and auth.password == BASIC_AUTH_PASS):
+            return _auth_failed_response()
+
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")  # replace in production
