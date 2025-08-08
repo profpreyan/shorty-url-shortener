@@ -17,17 +17,46 @@
     <tbody class="divide-y">
       {% for l in links %}
       <tr>
-        <td class="px-4 py-2 font-mono"><a class="hover:underline" target="_blank" href="/{{ l.slug }}">{{ l.slug }}</a></td>
-        <td class="px-4 py-2 max-w-[26rem] truncate text-gray-600">{{ l.target_url }}</td>
-        <td class="px-4 py-2">{{ l.title or "" }}</td>
-        <td class="px-4 py-2 text-gray-500">{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
-        <td class="px-4 py-2 text-right">
-          <a class="border rounded px-2 py-1 text-xs" href="/stats/{{ l.slug }}{% if admin_token %}?token={{ admin_token }}{% endif %}">Analytics</a>
-          <form method="post" action="/admin/delete/{{ l.slug }}" style="display:inline" onsubmit="return confirm('Delete {{ l.slug }}?')">
-            <button class="ml-2 border rounded px-2 py-1 text-xs">Delete</button>
-          </form>
-        </td>
-      </tr>
+  <!-- Slug -->
+  <td class="px-4 py-2 font-mono">
+    <a class="hover:underline" target="_blank" href="/{{ l.slug }}">{{ l.slug }}</a>
+  </td>
+
+  <!-- Target (editable) -->
+  <td class="px-4 py-2">
+    <form action="/admin/edit/{{ l.slug }}{% if admin_token %}?token={{ admin_token }}{% endif %}"
+          method="post"
+          class="flex gap-2 items-center">
+      <input type="url"
+             name="target_url"
+             value="{{ l.target_url }}"
+             class="border rounded px-2 py-1 w-72"
+             placeholder="https://example.com"
+             required>
+      <button class="border rounded px-2 py-1 text-xs">Save</button>
+    </form>
+  </td>
+
+  <!-- Title -->
+  <td class="px-4 py-2">{{ l.title or "" }}</td>
+
+  <!-- Created -->
+  <td class="px-4 py-2 text-gray-500">{{ l.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+
+  <!-- Actions -->
+  <td class="px-4 py-2 text-right">
+    <a class="border rounded px-2 py-1 text-xs"
+       href="/stats/{{ l.slug }}{% if admin_token %}?token={{ admin_token }}{% endif %}">Analytics</a>
+
+    <form method="post"
+          action="/admin/delete/{{ l.slug }}{% if admin_token %}?token={{ admin_token }}{% endif %}"
+          style="display:inline"
+          onsubmit="return confirm('Delete {{ l.slug }}? This also deletes its analytics.');">
+      <button class="ml-2 border rounded px-2 py-1 text-xs text-red-700">Delete</button>
+    </form>
+  </td>
+</tr>
+
       {% endfor %}
     </tbody>
   </table>
