@@ -48,10 +48,17 @@ def random_slug(n=6):
     return "".join(random.choice(chars) for _ in range(n))
 
 def is_admin(req):
+    # If no token is configured, leave the app open (useful for local demos).
     if not ADMIN_TOKEN:
-        return True  # no token set -> open (for demos). Set ADMIN_TOKEN to lock down.
-    token = req.args.get("token") or req.headers.get("X-Admin-Token")
+        return True
+    # Accept token from querystring, header, or POST form body.
+    token = (
+        req.args.get("token")
+        or req.headers.get("X-Admin-Token")
+        or req.form.get("token")
+    )
     return token == ADMIN_TOKEN
+
 
 # Run init only once before the first request
 @app.before_request
