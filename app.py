@@ -153,6 +153,33 @@ def admin_links():
         abort(403)
     links = Link.query.order_by(Link.created_at.desc()).all()
     return render_template("links.html", links=links, base_url=BASE_URL, admin_token=ADMIN_TOKEN)
+from flask import flash  # at the top with imports (harmless if unused)
+
+# --- Edit link (update target_url) ---
+@app.route("/admin/edit/<int:link_id>", methods=["POST"])
+def admin_edit_link(link_id):
+    if not is_admin(request):
+        return "Forbidden", 403
+    link = Link.query.get_or_404(link_id)
+    new_url = request.form.get("target_url", "").strip()
+    if not new_url:
+        return "Target URL required", 400
+    link.target_url = new_url
+    db.session.commit()
+    return redirect(url_for("admin_links") + f"?token={request.args.get('token','')}")
+
+# --- Delete link ---
+@app.route("/admin/delete/<int:link_id>", methods=["POST"])
+def admin_delete_link(link_id):
+    if not is_admin(request):
+        return "Forbidden", 403
+    link = Link.query.get_or_404(link_id)
+    # delete its clicks too
+    Click.query.filter_by(link_id=link.id).delete()
+    db.session.delete(link)
+    db.session.commit()
+    return redirect(url_for("admin_links") + f"?token={request.args.get('token','')}")
+
 
 @app.post("/admin/delete/<slug>")
 def delete_link(slug):
